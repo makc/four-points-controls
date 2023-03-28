@@ -9,8 +9,9 @@
     <script type="module">
         import * as THREE from 'three';
         import { FourPointsControls } from './build/fpc.js';
+        import { GUI } from 'https://threejs.org/examples/jsm/libs/lil-gui.module.min.js';
     
-        const camera = new THREE.PerspectiveCamera( 42, 500 / 400, 1, 10 );
+        const camera = new THREE.PerspectiveCamera( 66, 500 / 400, 0.5, 50 );
         camera.position.z = 5;
 
         const scene = new THREE.Scene();
@@ -39,4 +40,13 @@
         const controls = FourPointsControls( camera, renderer.domElement );
         controls.add( mesh );
         scene.add( controls );
+
+        const gui = new GUI();
+        gui.add( camera, 'fov', 25, 125, 1 ).onChange( function() {
+            camera.updateProjectionMatrix();
+        } );
+        gui.add( controls, 'method', {
+            exact3: FourPointsControls.exact3,
+            exact4: FourPointsControls.exact4,
+        } );
     </script>

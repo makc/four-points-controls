@@ -11,6 +11,7 @@ import {
 } from 'three';
 
 import exact3 from './methods/exact3';
+import exact4 from './methods/exact4';
 
 export function FourPointsControls(perspectiveCamera, domElement) {
     perspectiveCamera.clearViewOffset();
@@ -21,14 +22,15 @@ export function FourPointsControls(perspectiveCamera, domElement) {
     };
 
     object.points = [
-        new Vector2( 0.4,  0.1), new Vector2( 0.9,  0.3),
-        new Vector2( 0.9, -0.4), new Vector2( 0.2, -0.5)
+        new Vector2( 0.0,  0.0), new Vector2( 0.6,  0.1),
+        new Vector2( 0.8, -0.5), new Vector2(-0.2, -0.5)
     ];
 
     const handles = [];
     const Q = object.points.map(function() { return new Vector3() });
     const X = new Vector3(), Y = new Vector3(), Z = new Vector3(), T = new Vector3();
 
+    object.method = exact4;
     object.currentPoint = 1;
 
     let needsReprojection = false;
@@ -44,7 +46,7 @@ export function FourPointsControls(perspectiveCamera, domElement) {
             point.z = -f;
         });
 
-        const P = exact3(Q);
+        const P = this.method(Q);
 
         if(!P) {
             console.warn('Failed to find a pose for', JSON.stringify(object.points), 'current point:', object.currentPoint);
@@ -174,3 +176,6 @@ export function FourPointsControls(perspectiveCamera, domElement) {
 
     return object;
 }
+
+FourPointsControls.exact3 = exact3;
+FourPointsControls.exact4 = exact4;
