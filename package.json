@@ -1,0 +1,42 @@
+{
+  "name": "four-points-controls",
+  "version": "0.1.0",
+  "description": "Orients a 3D object using four points in camera space.",
+  "type": "module",
+  "module": "./build/fpc.js",
+  "exports": {
+    ".": {
+      "import": "./build/fpc.js"
+    }
+  },
+  "scripts": {
+    "build-three": "rollup src/fpc.js --file build/fpc.js --external three --format esm --plugin @rollup/plugin-node-resolve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/makc/four-points-controls.git"
+  },
+  "files": [
+    "build",
+    "src",
+    "package.json",
+    "README.md"
+  ],
+  "keywords": [
+    "three.js"
+  ],
+  "author": "makc",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/makc/four-points-controls/issues"
+  },
+  "homepage": "https://github.com/makc/four-points-controls#readme",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "rollup": "^3.20.0",
+    "three": "^0.150.1"
+  },
+  "dependencies": {
+    "cdk4": "^0.1.3"
+  }
+}

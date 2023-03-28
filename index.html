@@ -1,0 +1,42 @@
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://threejs.org/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { FourPointsControls } from './build/fpc.js';
+    
+        const camera = new THREE.PerspectiveCamera( 42, 500 / 400, 1, 10 );
+        camera.position.z = 5;
+
+        const scene = new THREE.Scene();
+
+        const material = new THREE.MeshBasicMaterial( {
+            map: new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/transition/transition6.png' )
+        } );
+        material.map.anisotropy = 8;
+
+        const geometry = new THREE.BoxGeometry( 2, 2, 2 );
+        geometry.translate( 0, 0, 1 );
+
+        const mesh = new THREE.Mesh( geometry, material );
+        const box = new THREE.BoxHelper( mesh, 0x77ff00 );
+        mesh.add( box );
+
+        mesh.geometry = new THREE.PlaneGeometry( 2, 2 );
+
+        const renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setSize( 500, 400 );
+        renderer.setAnimationLoop( function( time ) {
+            renderer.render( scene, camera );
+        } );
+        document.body.appendChild( renderer.domElement );
+
+        const controls = FourPointsControls( camera, renderer.domElement );
+        controls.add( mesh );
+        scene.add( controls );
+    </script>
