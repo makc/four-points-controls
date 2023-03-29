@@ -12,6 +12,7 @@ import {
 
 import exact3 from './methods/exact3';
 import exact4 from './methods/exact4';
+import opencv from './methods/opencv';
 
 export function FourPointsControls(perspectiveCamera, domElement) {
     perspectiveCamera.clearViewOffset();
@@ -179,3 +180,4 @@ export function FourPointsControls(perspectiveCamera, domElement) {
 
 FourPointsControls.exact3 = exact3;
 FourPointsControls.exact4 = exact4;
+FourPointsControls.opencv = opencv;
