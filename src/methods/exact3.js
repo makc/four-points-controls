@@ -1,5 +1,7 @@
 import { solve4 } from 'cdk4';
 
+const metric = new WeakMap();
+
 function Pose(k1, k3, q) {
     const p = [];
     p[0] = q[0].clone();
@@ -14,18 +16,19 @@ function Pose(k1, k3, q) {
     var q2_x = p[2].x * zoom;
     var q2_y = p[2].y * zoom;
 
-    return {
-        p,
-        metric: 1 / ( 1e-6 +
+    metric.set(p,
+        1 / ( 1e-6 +
             // reprojection error
             (q2_x - q[2].x) ** 2 + (q2_y - q[2].y) ** 2
         )
-    }
+    );
+
+    return p;
 }
 
 Pose.Best = function (a, b) {
-    if(!a || (b && (a.metric < b.metric))) return +1;
-    if(!b || (a && (a.metric > b.metric))) return -1;
+    if(!a || (b && (metric.get(a) < metric.get(b)))) return +1;
+    if(!b || (a && (metric.get(a) > metric.get(b)))) return -1;
     return 0;
 };
 
@@ -69,7 +72,7 @@ export default function exact3(q) {
         Math.min (roots[0].y, roots[1].y, roots[2].y, roots[3].y)
     );
 
-    const pose = roots.map (function (r) {
+    return roots.map (function (r) {
         if (r.y < threshold) {
             const k1 = r.x;
             const k3 = (a * k1 - b) / (c * k1 - d);
@@ -78,6 +81,68 @@ export default function exact3(q) {
             }
         }
     }).sort (Pose.Best) [0];
+}
 
-    return pose && pose.p;
+exact3.average = function (q) {
+    // this produces bogus pose by averaging exact3() results for each qi
+    // however, exact3() results change once pi-s get reprojected, and so
+    // average() result does, too - therefore it is repeated here a few
+    // times, hoping that it will converge to something pretty
+    let iterations = 3, qz = q[0].z, p;
+    do {
+        let r = [], w = 0;
+
+        for (let i = 0; i < 4; i++) {
+            let result = exact3 (q.map (function(_, j) { return q[(i + j) % 4] }));
+            if (result) {
+                // weigh results with their metrics
+                let m = metric.get (result); w += m; r.push (result);
+
+                for (let j = 0; j < 4; j++) {
+                    result[j].multiplyScalar (m);
+                }
+
+                for (let j = 0; j < i; j++) {
+                    result.unshift (result.pop ());
+                }
+            }
+        }
+
+        if (w > 0) {
+            p = q.map (function(qi) {
+                return qi.clone().multiplyScalar(0);
+            });
+
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < r.length; j++) {
+                    p[i].add (r[j][i].multiplyScalar (1 / w));
+                }
+            }
+
+            // try to keep it square - the method here is also bogus, the only
+            // sound condition it satisfies is that square input is not changed
+            const T = p[0].clone ().add (p[1]).add (p[2]).add (p[3]).multiplyScalar (0.25);
+            const TP0 = p[0].clone ().sub (T);
+            const TP1 = p[1].clone ().sub (T);
+            const Z = TP1.clone ().cross (TP0).normalize ();
+            TP0.applyAxisAngle (Z, -Math.PI / 4);
+            TP1.applyAxisAngle (Z,  Math.PI / 4);
+            const Y = TP0.add (TP1).multiplyScalar (0.5 * Math.SQRT1_2); // Y candidate
+            const X = TP1.copy (Y).applyAxisAngle (Z, -Math.PI / 2); // X candidate
+            p[0].copy (T).add (Y).sub (X);
+            p[1].copy (T).add (Y).add (X);
+            p[2].copy (T).sub (Y).add (X);
+            p[3].copy (T).sub (Y).sub (X);
+
+            // reproject p and repeat
+            q = p.map (function(pi) {
+                return pi.clone ().multiplyScalar (qz / pi.z);
+            });
+        } else {
+            // there's nothing to iterate
+            break;
+        }
+    } while (iterations --> 0);
+
+    return p;
 }
