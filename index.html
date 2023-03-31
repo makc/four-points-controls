@@ -1,4 +1,7 @@
 <body>
+    <style>
+        canvas { background-image: url(back.webp); }
+    </style>
     <script src="https://docs.opencv.org/4.6.0/opencv.js"></script>
     <script type="importmap">
         {
@@ -10,30 +13,38 @@
     <script type="module">
         import * as THREE from 'three';
         import { FourPointsControls } from './build/fpc.js';
+        import { GLTFLoader } from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js';
         import { GUI } from 'https://threejs.org/examples/jsm/libs/lil-gui.module.min.js';
     
-        const camera = new THREE.PerspectiveCamera( 66, 500 / 400, 0.5, 50 );
+        const camera = new THREE.PerspectiveCamera( 42, 750 / 500, 0.5, 50 );
         camera.position.z = 5;
 
         const scene = new THREE.Scene();
+        scene.add( new THREE.AmbientLight( '#960' ) );
 
-        const material = new THREE.MeshBasicMaterial( {
-            map: new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/transition/transition6.png' )
-        } );
-        material.map.anisotropy = 8;
+        const light = new THREE.DirectionalLight( '#69F', 4 );
+        light.position.y = -1;
+        scene.add( light );
 
         const geometry = new THREE.BoxGeometry( 2, 2, 2 );
         geometry.translate( 0, 0, 1 );
 
-        const mesh = new THREE.Mesh( geometry, material );
-        const box = new THREE.BoxHelper( mesh, 0x77ff00 );
-        mesh.add( box );
+        const mesh = new THREE.BoxHelper( new THREE.Mesh( geometry ), 0x77ff00 );
 
-        mesh.geometry = new THREE.PlaneGeometry( 2, 2 );
+        new GLTFLoader().load( 'duck.glb', function( gltf ) {
+            gltf.scene.scale.setScalar( 0.7 );
+            gltf.scene.rotation.x = Math.PI / 2;
+            gltf.scene.traverse( fixDuckingNormals );
+            mesh.add( gltf.scene );
+        } );
 
-        const renderer = new THREE.WebGLRenderer( { antialias: true } );
-        renderer.setSize( 500, 400 );
+        const renderer = new THREE.WebGLRenderer( { alpha: true, antialias: true } );
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.setSize( 750, 500 );
         renderer.setAnimationLoop( function( time ) {
+            if( mesh.children.length ) {
+                mesh.children[0].rotation.y = ( time % 10000 ) * 6.2831853e-4;
+            }
             renderer.render( scene, camera );
         } );
         document.body.appendChild( renderer.domElement );
@@ -41,6 +52,11 @@
         const controls = FourPointsControls( camera, renderer.domElement );
         controls.add( mesh );
         scene.add( controls );
+
+        controls.points[0].set( -0.17, -0.45 );
+        controls.points[1].set(  0.18, -0.58 );
+        controls.points[2].set( -0.04, -0.91 );
+        controls.points[3].set( -0.43, -0.71 );
 
         const gui = new GUI();
         gui.add( camera, 'fov', 25, 125, 1 ).onChange( function() {
@@ -52,4 +68,22 @@
             exact4: FourPointsControls.exact4,
             opencv: FourPointsControls.opencv,
         } );
+
+        function fixDuckingNormals( o ) {
+            const g = o.geometry; if( !g ) return;
+            const ns = {}, p = g.attributes.position, n = g.attributes.normal;
+            for( let i = 0; i < p.count; i++ ) {
+                const k = p.array[3*i] + ' ' + p.array[3*i + 1] + ' ' + p.array[3*i + 2];
+                ns[k] = ns[k] || []; ns[k].push( new THREE.Vector3().fromBufferAttribute( n, i ) );
+            }
+            for( let k in ns ) {
+                const v = new THREE.Vector3();
+                for( let ni of ns[k] ) v.add( ni );
+                ns[k] = v.normalize();
+            }
+            for( let i = 0; i < p.count; i++ ) {
+                const k = p.array[3*i] + ' ' + p.array[3*i + 1] + ' ' + p.array[3*i + 2];
+                n.setXYZ( i, ns[k].x, ns[k].y, ns[k].z );
+            }
+        }
     </script>
