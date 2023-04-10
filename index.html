@@ -16,6 +16,7 @@
         import { FourPointsControls } from './build/fpc.js';
         import { GLTFLoader } from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js';
         import { GUI } from 'https://threejs.org/examples/jsm/libs/lil-gui.module.min.js';
+        import { mergeVertices } from 'https://threejs.org/examples/jsm/utils/BufferGeometryUtils.js'
     
         const camera = new THREE.PerspectiveCamera( 42, 750 / 500, 0.5, 50 );
         camera.position.z = 5;
@@ -82,20 +83,10 @@
         } );
 
         function fixDuckingNormals( o ) {
-            const g = o.geometry; if( !g ) return;
-            const ns = {}, p = g.attributes.position, n = g.attributes.normal;
-            for( let i = 0; i < p.count; i++ ) {
-                const k = p.array[3*i] + ' ' + p.array[3*i + 1] + ' ' + p.array[3*i + 2];
-                ns[k] = ns[k] || []; ns[k].push( new THREE.Vector3().fromBufferAttribute( n, i ) );
-            }
-            for( let k in ns ) {
-                const v = new THREE.Vector3();
-                for( let ni of ns[k] ) v.add( ni );
-                ns[k] = v.normalize();
-            }
-            for( let i = 0; i < p.count; i++ ) {
-                const k = p.array[3*i] + ' ' + p.array[3*i + 1] + ' ' + p.array[3*i + 2];
-                n.setXYZ( i, ns[k].x, ns[k].y, ns[k].z );
+            if( o.geometry ) {
+                delete o.geometry.attributes.normal;
+                o.geometry = mergeVertices( o.geometry );
+                o.geometry.computeVertexNormals();
             }
         }
     </script>
