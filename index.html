@@ -36,6 +36,7 @@
         const water = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), new THREE.MeshBasicMaterial( {
             map: new THREE.TextureLoader().load( 'water.jpg', function( texture ) {
                 texture.anisotropy = 8; texture.encoding = THREE.sRGBEncoding;
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
             } )
         } ) );
         water.visible = false;
@@ -48,12 +49,17 @@
             mesh.add( gltf.scene );
         } );
 
+        const x = new THREE.Vector3(), y = x.clone(), z = y.clone();
         const renderer = new THREE.WebGLRenderer( { alpha: true, antialias: true } );
         renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.setSize( 750, 500 );
         renderer.setAnimationLoop( function( time ) {
             if( mesh.children.length > 1 ) {
                 mesh.children[1].rotation.y = ( time % 10000 ) * 6.2831853e-4;
+            }
+            if( water.visible ) {
+                controls.matrixWorld.extractBasis( x, y, z );
+                water.material.map.offset.set( x.y, y.y ).multiplyScalar( 1e-3 * time );
             }
             renderer.render( scene, camera );
         } );
