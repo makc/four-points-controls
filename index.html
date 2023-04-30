@@ -11,16 +11,16 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://threejs.org/build/three.module.js"
+                "three": "https://cdn.jsdelivr.net/npm/three@0.151.3/build/three.module.js"
             }
         }
     </script>
     <script type="module">
         import * as THREE from 'three';
         import { FourPointsControls } from './build/fpc.js';
-        import { GLTFLoader } from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js';
-        import { GUI } from 'https://threejs.org/examples/jsm/libs/lil-gui.module.min.js';
-        import { mergeVertices } from 'https://threejs.org/examples/jsm/utils/BufferGeometryUtils.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.151.3/examples/jsm/loaders/GLTFLoader.js';
+        import { GUI } from 'https://cdn.jsdelivr.net/npm/three@0.151.3/examples/jsm/libs/lil-gui.module.min.js';
+        import { mergeVertices } from 'https://cdn.jsdelivr.net/npm/three@0.151.3/examples/jsm/utils/BufferGeometryUtils.js';
         import snarkdown from 'https://cdn.jsdelivr.net/npm/snarkdown/dist/snarkdown.es.js';
     
         const camera = new THREE.PerspectiveCamera( 42, 750 / 500, 0.5, 50 );
