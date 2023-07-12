@@ -44,5 +44,8 @@ calculates exact fit of three points and minimizes fourth point reprojection err
 * `FourPointsControls.exact4` \
 *default*; calculates exact fit of four points, but sacrifices the transformation orthonormality (this works best with flat or near-flat objects)
 
+* `FourPointsControls.exact4.diamond` \
+*experimental*; tweaks the results of `FourPointsControls.exact4` to equalize the lengths of X and Y axes
+
 * `FourPointsControls.opencv` \
 calculates approximate fit of four points using opencv SOLVEPNP_IPPE_SQUARE method (you will need to preload [~9 MB opencv.js build](https://docs.opencv.org/4.6.0/opencv.js) to use this option)
