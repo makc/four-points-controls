@@ -416,6 +416,18 @@ function exact4(q) {
     return p;
 }
 
+exact4.diamond = function(q) {
+    const p = exact4(q);
+    const p01 = p[1].clone ().sub (p[0]), L01 = p01.length ();
+    const p03 = p[3].clone ().sub (p[0]), L03 = p03.length ();
+    const L = Math.sqrt (L01 * L03);
+    p01.multiplyScalar (0.5 * (L - L01) / L01);
+    p[0].sub (p01); p[1].add (p01); p[2].add (p01); p[3].sub (p01);
+    p03.multiplyScalar (0.5 * (L - L03) / L03);
+    p[0].sub (p03); p[1].sub (p03); p[2].add (p03); p[3].add (p03);
+    return p;
+};
+
 let cmat, dist, ipts, mpts, rvec, tvec, rmat;
 
 window.cv?.then(function() {
